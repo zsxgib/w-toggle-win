@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from core import config, window as window_mgr
+from core.hotkey import UnregisterHotKey
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +163,14 @@ class MainWindow(QMainWindow):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
+            # 注销热键
             self.hotkey_manager.unregister(shortcut_id)
+            # 额外尝试清理残留的系统热键
+            try:
+                UnregisterHotKey(self.hotkey_manager._hwnd, shortcut_id)
+            except:
+                pass
+
             if shortcut_id in self.registered_hotkeys:
                 del self.registered_hotkeys[shortcut_id]
 

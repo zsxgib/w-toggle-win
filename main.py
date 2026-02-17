@@ -14,10 +14,19 @@ from gui.tray import TrayIcon
 
 
 def main():
-    # 设置日志
+    # 设置日志 - 同时输出到文件和控制台
+    log_file = 'C:\\Users\\Administrator\\AppData\\Roaming\\window-toggle-win\\app.log'
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            file_handler,
+            logging.StreamHandler()
+        ]
     )
 
     # 创建应用

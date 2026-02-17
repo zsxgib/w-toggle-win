@@ -9,8 +9,9 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QListWidget, QPushButton, QGroupBox
 )
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtCore import Qt, QTimer, QSize
+from PyQt6.QtGui import QKeyEvent, QFont, QIcon
+from PyQt6.QtWidgets import QListWidgetItem
 
 from core import config, window as window_mgr
 
@@ -212,24 +213,105 @@ class AddDialog(QDialog):
 
     def _load_windows(self):
         """加载窗口列表"""
-        self.window_list.clear()
-        self.window_options = []
+        import logging
+        logger = logging.getLogger(__name__)
 
-        windows = window_mgr.get_all_windows()
-        groups = window_mgr.group_by_class(windows)
+        logger.info("[add_dialog] === Step 1: Starting to load windows ===")
+        try:
+            self.window_list.clear()
+            logger.info("[add_dialog] === Step 1.1: clear done ===")
+            self.window_options = []
+            logger.info("[add_dialog] === Step 1.2: options cleared ===")
 
-        for class_name, wins in groups.items():
-            valid_wins = [w for w in wins if w['title']]
-            if not valid_wins:
+            # 设置列表项高度
+            self.window_list.setIconSize(QSize(24, 24))
+            logger.info("[add_dialog] === Step 1.3: setIconSize done ===")
+            self.window_list.setMinimumHeight(400)
+            logger.info("[add_dialog] === Step 1.4: setMinimumHeight done ===")
+        except Exception as e:
+            logger.error(f"[add_dialog] ERROR in setup: {e}", exc_info=True)
+
+        logger.info("[add_dialog] === Step 2: Before get_all_windows ===")
+        try:
+            windows = window_mgr.get_all_windows()
+            logger.info(f"[add_dialog] === Step 3: Got {len(windows)} windows ===")
+        except Exception as e:
+            logger.error(f"[add_dialog] ERROR in get_all_windows: {e}", exc_info=True)
+            windows = []
+
+        # 过滤系统窗口并获取进程信息
+        system_classes = {'Progman', 'Shell_TrayWnd', 'Windows.UI.Core.CoreWindow',
+                         'WinUIDesktopWin32WindowClass', 'DV2ControlHost',
+                         'Microsoft.CmdPal.UI.exe', 'TextInputHost.exe'}
+
+        window_data = []
+        for w in windows:
+            if not w.get('title'):
                 continue
 
+            # 过滤系统窗口
+            if w.get('class_name') in system_classes:
+                logger.info(f"[add_dialog] Skipping system window: {w['title']} ({w.get('class_name')})")
+                continue
+
+            # 获取进程信息
+            try:
+                proc_info = window_mgr.get_window_process_info(w['hwnd'])
+            except Exception as e:
+                proc_info = None
+
+            if proc_info:
+                process_name = proc_info.get('process_name', 'Unknown')
+            else:
+                process_name = 'Unknown'
+
+            window_data.append({
+                'window': w,
+                'proc_info': proc_info,
+                'process_name': process_name
+            })
+
+        # 按进程名分组
+        from collections import defaultdict
+        groups = defaultdict(list)
+        for data in window_data:
+            groups[data['process_name']].append(data)
+
+        logger.info(f"[add_dialog] Showing {len(groups)} groups")
+
+        # 按进程名排序显示
+        for process_name in sorted(groups.keys()):
+            items = groups[process_name]
+
             # 添加分组标题
-            self.window_list.addItem(f"--- {class_name} ---")
+            group_item = QListWidgetItem(f"--- {process_name} ---")
+            group_item.setFlags(group_item.flags() & ~Qt.ItemFlag.ItemIsSelectable)
+            self.window_list.addItem(group_item)
 
-            for w in valid_wins:
+            for data in items:
+                w = data['window']
+                proc_info = data['proc_info']
+
+                # 构建显示文本
+                display_text = w['title']
+
                 self.window_options.append(w)
-                self.window_list.addItem(f"  {w['title']}")
 
+                # 创建列表项
+                item = QListWidgetItem(f"  {display_text}")
+
+                # 加载图标
+                try:
+                    if proc_info and proc_info.get('exe_path'):
+                        icon = window_mgr.get_process_icon(proc_info['exe_path'], 24)
+                        if icon:
+                            item.setIcon(icon)
+                except Exception as e:
+                    logger.warning(f"[add_dialog] Failed to get icon: {e}")
+
+                self.window_list.addItem(item)
+
+        logger.info("[add_dialog] Finished loading windows")
         # 绑定选择事件
         self.window_list.itemClicked.connect(self._on_window_selected)
 
