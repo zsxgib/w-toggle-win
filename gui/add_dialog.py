@@ -216,15 +216,22 @@ class AddDialog(QDialog):
         self.window_options = []
 
         windows = window_mgr.get_all_windows()
-        groups = window_mgr.group_by_class(windows)
 
-        for class_name, wins in groups.items():
+        # 按进程名分组
+        groups = {}
+        for w in windows:
+            proc_name = w.get('process_name', 'Unknown')
+            if proc_name not in groups:
+                groups[proc_name] = []
+            groups[proc_name].append(w)
+
+        for proc_name, wins in groups.items():
             valid_wins = [w for w in wins if w['title']]
             if not valid_wins:
                 continue
 
-            # 添加分组标题
-            self.window_list.addItem(f"--- {class_name} ---")
+            # 按进程名分组显示
+            self.window_list.addItem(f"--- {proc_name} ---")
 
             for w in valid_wins:
                 self.window_options.append(w)
