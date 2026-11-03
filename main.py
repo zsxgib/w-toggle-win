@@ -3,19 +3,39 @@ Window Toggle 主程序
 使用 PyQt6 + ctypes RegisterHotKey
 """
 import sys
+import os
 import logging
 import ctypes
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QAbstractNativeEventFilter
 
+from core import config
 from core.hotkey import HotkeyManager
 from gui.main_window import MainWindow
 from gui.tray import TrayIcon
+from version import VERSION
+
+
+def show_version():
+    """打印版本号与本次更新要点。"""
+    print(f"Window Toggle v{VERSION}")
+    print()
+    print(f"v{VERSION} 主要更新：")
+    print("  - 接入 corner-badge：绑定窗口右上角显示 pi 状态标签")
+    print("    (未完成=绿 / 完成=红 / 等你确认=黄 / 未知=灰)")
+    print("  - 配置目录改为 w-toggle-x，与旧版实例的 window-toggle-win 分开，")
+    print("    两个版本可以同时运行")
+    print("  - 版本号收敛到 version.py 单一来源")
 
 
 def main():
+    if '--version' in sys.argv:
+        show_version()
+        return 0
+
     # 设置日志 - 同时输出到文件和控制台
-    log_file = 'C:\\Users\\Administrator\\AppData\\Roaming\\window-toggle-win\\app.log'
+    log_file = config.LOG_FILE
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
@@ -35,7 +55,7 @@ def main():
 
     # 设置应用信息
     app.setApplicationName("Window Toggle")
-    app.setApplicationVersion("1.0.0")
+    app.setApplicationVersion(VERSION)
 
     # 创建热键管理器
     hotkey_manager = HotkeyManager()

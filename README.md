@@ -101,3 +101,32 @@ pyinstaller --onefile --name window-toggle main.py
 ### 配置
 
 配置文件保存在: `%APPDATA%\window-toggle-win\config.json`
+
+---
+
+## Changelog / 更新日志
+
+See [CHANGELOG.md](CHANGELOG.md). 更新日志 / See [CHANGELOG.md](CHANGELOG.md).
+
+## Version / 版本
+
+版本号唯一来源是 `version.py`，Windows 与 Linux 形态共用同一版本序列与同名 tag。
+
+| 版本 | 内容 |
+|---|---|
+| v0.4 | 接入 corner-badge（右上角 pi 状态标签）、`--version`、配置目录独立化 |
+| v0.3 | 窗口列表更清晰、修复 Windows Terminal 切换 |
+
+## Platform parity / 平台对照
+
+| 能力 | Windows | Linux |
+|---|---|---|
+| 热键切换窗口显隐 | ✅ | ✅ |
+| corner-badge 状态标签（v0.4+） | ✅ | ✅ |
+| 常驻守护进程（避免 X 连接耗尽） | ❌ 不需要 | ✅ |
+| 启动应用 + 切换（app binding） | ❌ | ✅ |
+| Alt+Tab 风格窗口选择器 | ✅ | ❌ |
+
+配置目录：
+- Windows：`%APPDATA%\w-toggle-x\`
+- Linux：`~/.config/w-toggle-x/`

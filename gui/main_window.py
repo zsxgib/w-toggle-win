@@ -131,6 +131,9 @@ class MainWindow(QMainWindow):
                 else:
                     print(f"[register] Failed to register {modifiers}+{key}, id={shortcut_id}")
 
+        # 把已有绑定全部登记给 corner-badge，右上角显示对应状态标签
+        config.notify_badge_all()
+
     def _on_add_clicked(self):
         """添加按钮点击"""
         from gui.add_dialog import AddDialog
