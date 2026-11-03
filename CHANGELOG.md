@@ -28,6 +28,16 @@ Windows 与 Linux 形态共用同一版本序列、同一份 changelog、同名 
   `DETACHED_PROCESS`：改用 `CREATE_NO_WINDOW`
 - Windows Terminal 多标签无法区分：改用「窗口标题末段 ↔ pi 的 cwd 目录名」匹配归属
 
+## v0.6 (2026-11-03)
+
+### 修复
+
+- 调 corner-badge 回调改为直接执行 `wt-badge-cb`（pip 装的 console_script，
+  Windows 上是 .exe），不再经 `cmd /c` 也不用绝对路径。
+  `CreateProcess` 只会自动补 `.exe` 后缀，原来找不到 `.cmd`；
+  `cmd /c` 退出还会连带终止回调。命令在 PATH 里查找，pip 装完即可用。
+
+
 ## v0.5 (2026-11-03)
 
 ### 修复

@@ -83,16 +83,13 @@ def add_shortcut(shortcut):
 def _badge_cmd(args):
     """构造调用 corner-badge 回调的命令。
 
-    Windows 的 CreateProcess 只会自动补 .exe 后缀，**找不到 .cmd**，
-    所以 Windows 上统一走 cmd /c，并优先用绝对路径（不依赖 PATH）。
+    直接调 wt-badge-cb（pip 装的 console_script，Windows 上是 .exe）。
+    不再经 cmd /c，也不用绝对路径：
+      - CreateProcess 只会自动补 .exe 后缀，原来找不到 .cmd
+      - cmd /c 退出 → 控制台销毁 → 回调被连带终止
+    命令在 PATH 里查找，pip 装完就一定能找到。
     """
-    args = [str(a) for a in args]
-    if os.name == 'nt':
-        wrapper = os.path.join(os.path.expanduser('~'), 'corner-badge', 'wt-badge-cb.cmd')
-        if os.path.exists(wrapper):
-            return ['cmd', '/c', wrapper] + args
-        return ['cmd', '/c', BADGE_CMD] + args
-    return [BADGE_CMD] + args
+    return [BADGE_CMD] + [str(a) for a in args]
 
 
 def _run_badge(args):
