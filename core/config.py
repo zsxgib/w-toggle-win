@@ -107,7 +107,8 @@ def _run_badge(args):
         if args and args[0] == '--all':
             cb_cli.register_all()
         else:
-            cb_cli.register(str(args[0]), int(str(args[1]), 0))
+            title = str(args[2]) if len(args) > 2 else None
+            cb_cli.register(str(args[0]), int(str(args[1]), 0), title)
         return True
     except Exception:
         pass
@@ -133,7 +134,12 @@ def _run_badge(args):
 
 
 def notify_badge(shortcut):
-    """把单个绑定登记给 corner-badge。"""
+    """把单个绑定登记给 corner-badge。
+
+    第三个参数是**绑定那一刻的窗口标题**（冻结值）：Windows Terminal
+    分屏或切 tab 时当前标题只反映激活的那个 pane，用冻结值才能稳定地
+    指向同一个终端。
+    """
     if not isinstance(shortcut, dict):
         return False
     key = shortcut.get('key', '')
@@ -142,7 +148,8 @@ def notify_badge(shortcut):
         return False
     modifiers = shortcut.get('modifiers', '')
     shortcut_str = f"{modifiers}+{key}" if modifiers else key
-    return _run_badge([shortcut_str, str(hwnd)])
+    title = shortcut.get('window_title', '') or ''
+    return _run_badge([shortcut_str, str(hwnd), title])
 
 
 def notify_badge_all():

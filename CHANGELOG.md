@@ -3,6 +3,20 @@
 本文件记录 wtx（Window Toggle）各平台的版本变化。
 Windows 与 Linux 形态共用同一版本序列、同一份 changelog、同名 tag。
 
+## v0.8 (2026-11-03)
+
+### 变更
+
+- **登记绑定时把窗口标题一起传给 corner-badge**（`core/config.py`）
+  - corner-badge 用这个**冻结的标题**来定位终端，而不是读当前窗口标题
+  - Windows Terminal 分屏 / 切 tab 时，当前标题只反映激活的那个 pane
+    （甚至可能变成空字符串），用当前标题会让徽章串台或直接变灰
+
+### 修复
+
+- corner-badge 的解析原本跑在 wt 的主线程里（Windows 上是秒级的全进程扫描），
+  会把快捷键响应和界面一起卡住 —— 已改为后台线程
+
 ## v0.7 (2026-11-03)
 
 ### 变更
