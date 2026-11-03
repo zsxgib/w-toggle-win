@@ -20,11 +20,27 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.hotkey_manager = hotkey_manager
         self.registered_hotkeys = {}
+        self._badge_host = None
 
         self.setWindowTitle("Window Toggle")
         self.setGeometry(100, 100, 500, 400)
 
         self._setup_ui()
+        self._start_badge()
+
+    def _start_badge(self):
+        """在当前进程里显示右上角的状态标签。
+
+        标签是本进程的一个窗口（共用同一个 QApplication）：
+        启动 wt → 标签出现；关闭 wt → 标签自动消失。
+        不需要子进程、不需要 pid 文件、不会被 job object 连坐杀掉。
+        """
+        try:
+            from corner_badge.badge import BadgeHost
+
+            self._badge_host = BadgeHost().start()
+        except Exception as exc:
+            logger.warning('启动 corner-badge 标签失败: %s', exc)
 
     def closeEvent(self, event):
         """关闭窗口时隐藏到托盘，而不是退出程序"""

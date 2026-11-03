@@ -93,10 +93,26 @@ def _badge_cmd(args):
 
 
 def _run_badge(args):
-    """后台调用 corner-badge 回调。
+    """把绑定登记给 corner-badge。
 
-    失败一律静默：徽章工具是可选的，绝不能影响快捷键配置的正常流程。
+    优先**进程内调用**：标签窗口就在本进程里（共用同一个 QApplication），
+    启动 wt → 标签出现，关闭 wt → 标签消失。没有子进程、没有 pid 文件，
+    也不会被 PyInstaller onefile 的 job object 连坐杀掉。
+
+    进程内不可用时（corner-badge 没装 / import 失败）回退到子进程方式。
     """
+    try:
+        from corner_badge import cli as cb_cli
+
+        if args and args[0] == '--all':
+            cb_cli.register_all()
+        else:
+            cb_cli.register(str(args[0]), int(str(args[1]), 0))
+        return True
+    except Exception:
+        pass
+
+    # 回退：子进程调用
     try:
         kwargs = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                       stdin=subprocess.DEVNULL)
