@@ -104,9 +104,13 @@ def _run_badge(args):
         kwargs = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                       stdin=subprocess.DEVNULL)
         if os.name == 'nt':
-            # CREATE_NO_WINDOW：不弹黑框，且不和 CREATE_NEW_PROCESS_GROUP 冲突
-            # （两者同时用会让 CreateProcess 直接失败）
-            kwargs['creationflags'] = 0x08000000
+            # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP：让回调脱离当前控制台。
+            # 否则 cmd /c 退出 → 控制台销毁 → 回调被连带终止，
+            # 表现为“绑定表时间戳更新了但内容没更新”。
+            # （CREATE_NO_WINDOW 单独用不够，它仍依附父进程的控制台；
+            #   且 CREATE_NEW_PROCESS_GROUP 不能与 DETACHED_PROCESS 之外的
+            #   CREATE_NEW_CONSOLE 同用，这里组合是合法的。）
+            kwargs['creationflags'] = 0x00000008 | 0x00000200
         else:
             kwargs['start_new_session'] = True
         subprocess.Popen(_badge_cmd(args), **kwargs)
