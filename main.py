@@ -6,6 +6,31 @@ import sys
 import os
 import logging
 import ctypes
+
+
+def _add_pip_site_packages():
+    """把 pip 装的包目录加进 sys.path。
+
+    corner-badge 是独立的 pip 包，**不**打进这个 exe（spec 里 excludes 掉了）。
+    打包后的 onefile exe 默认看不到用户 site-packages，所以这里手动补上——
+    好处是升级 corner-badge 只需要 `pip install -U`，不用重新打包这个 exe。
+    """
+    if not hasattr(sys, 'frozen'):
+        return
+    progs = os.path.join(os.environ.get('LOCALAPPDATA', ''),
+                         'Programs', 'Python')
+    if not os.path.isdir(progs):
+        return
+    try:
+        for name in os.listdir(progs):
+            sp = os.path.join(progs, name, 'Lib', 'site-packages')
+            if os.path.isdir(sp) and sp not in sys.path:
+                sys.path.append(sp)
+    except Exception:
+        pass
+
+
+_add_pip_site_packages()
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QAbstractNativeEventFilter
 
