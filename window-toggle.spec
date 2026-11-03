@@ -6,11 +6,22 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=[
+        # corner-badge 用 importlib 动态选 Qt 绑定，静态分析看不到，
+        # 这里显式列出（Windows 上装的是 PyQt6）。
+        'PyQt6',
+        'PyQt6.QtCore',
+        'PyQt6.QtGui',
+        'PyQt6.QtWidgets',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        # PyInstaller 不允许同时打包两种 Qt 绑定，corner-badge 在 Windows 上
+        # 用 PyQt6，把 PySide6 排除掉。
+        'PySide6',
+    ],
     noarchive=False,
     optimize=0,
 )

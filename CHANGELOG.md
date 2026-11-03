@@ -3,6 +3,27 @@
 本文件记录 wtx（Window Toggle）各平台的版本变化。
 Windows 与 Linux 形态共用同一版本序列、同一份 changelog、同名 tag。
 
+## v0.7 (2026-11-03)
+
+### 变更
+
+- **corner-badge 改为同进程集成**（Windows）
+  - 标签窗口就是本进程的一个 QWidget，共用同一个 QApplication：
+    **启动 wt → 标签出现，关闭 wt → 标签自动消失**
+  - 不再有「wt → wt-badge-cb → badge」三层进程，也不再有 pid 文件、
+    PATH 查找、job object 连坐这三类问题
+  - 绑定登记改为进程内调用 `corner_badge.cli.register()`，
+    不可用时仍回退到子进程方式
+- `window-toggle.spec`：显式列入 `PyQt6.*`（corner-badge 用 importlib 动态选
+  Qt 绑定，静态分析看不到），并排除 `PySide6`（PyInstaller 不允许同时打包
+  两种 Qt 绑定）
+- `requirements.txt`：加 `corner-badge>=0.9.0`
+
+### 修复
+
+- corner-badge 的 pid 文件里的进程号会被系统复用，导致 cb 误判「badge 还活着」
+  而永远不启动新进程 —— 同进程集成后该机制彻底消失
+
 ## v0.4 (2026-11-03)
 
 ### 新增
